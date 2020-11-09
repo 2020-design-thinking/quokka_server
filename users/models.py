@@ -1,7 +1,7 @@
 from django.db import models
 
 
-class Member(models.Model):
+class User(models.Model):
     name = models.CharField(max_length=12)
     email = models.CharField(max_length=100)
     birth = models.DateField()
