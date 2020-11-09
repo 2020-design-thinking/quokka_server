@@ -5,10 +5,10 @@ from .models import User
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['name', 'email', 'birth']
+        fields = '__all__'
 
 
 class PasswordSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'pw']
+        fields = ['username', 'password']
