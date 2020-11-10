@@ -15,3 +15,15 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'], serializer_class=PasswordSerializer)
     def login(self, request):
         return HttpResponse(status=400)
+
+    @action(detail=False, methods=['post'])
+    def register(self, request):
+        serializer = UserSerializer(data=request.data)
+
+        if serializer.is_valid():
+            User.objects.create_user(username=username, email=email, password=password, first_name=first_name,
+                                     last_name=last_name, birth=birth)
+        else:
+            return HttpResponse(status=400)
+
+        return HttpResponse(status=200)
