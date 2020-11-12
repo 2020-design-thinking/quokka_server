@@ -20,6 +20,10 @@ def get_list(request):
 @api_view(['POST'])
 def create(request):
     if request.method == 'POST':
+        if not request.user.is_superuser:
+            return HttpResponse(status=403)
+
+        print(request.user)
         name = "쿼카 #{}".format(random.randrange(1, 10000))
         while len(Device.objects.filter(name=name)) > 0:
             name = "쿼카 #{}".format(random.randrange(1, 10000))
@@ -33,6 +37,9 @@ def create(request):
 @api_view(['DELETE'])
 def delete(request, pk):
     if request.method == 'DELETE':
+        if not request.user.is_superuser:
+            return HttpResponse(status=403)
+
         device = get_object_or_404(Device, pk=pk)
         device.delete()
         return HttpResponse(status=200)
