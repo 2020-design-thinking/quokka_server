@@ -43,7 +43,8 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'users',
     'devices',
-    'drive'
+    'drive',
+    'judge'
 ]
 
 MIDDLEWARE = [
