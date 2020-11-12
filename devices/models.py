@@ -7,3 +7,5 @@ class Device(models.Model):
     lng = models.DecimalField(max_digits=9, decimal_places=6, default=0)
     battery = models.FloatField(default=0)
     last_user_id = models.IntegerField(default=-1)
+
+    using = models.BooleanField(default=False)

@@ -7,6 +7,7 @@ from rest_framework.decorators import api_view
 
 from devices.models import Device
 from devices.serializers import DeviceSerializer
+from drive.models import Drive
 
 
 @api_view(['GET'])
@@ -69,5 +70,27 @@ def update(request, pk):
             device.save()
 
             return HttpResponse(status=200)
+
+    return HttpResponse(status=400)
+
+
+@api_view(['POST'])
+def drive(request, pk):
+    if request.method == 'POST':
+        if request.user.is_anonymous:
+            return HttpResponse(status=403)
+
+        device = get_object_or_404(Device, pk=pk)
+
+        if device.using:
+            return HttpResponse(status=403)
+
+        drv = Drive(user=request.user, device=device)
+        drv.save()
+
+        device.using = True
+        device.save()
+
+        return JsonResponse({'pk': drv.pk})
 
     return HttpResponse(status=400)
