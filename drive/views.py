@@ -9,6 +9,8 @@ from devices.models import Device
 from devices.serializers import DeviceSerializer
 from drive.models import Drive, LocationSample
 from drive.serializers import LocationSampleSerializer
+from judge.models import DrivingImage
+from judge.serializers import DrivingImageSerializer
 
 
 @api_view(['POST'])
@@ -39,6 +41,23 @@ def update(request, pk):
         return HttpResponse(status=200)
 
     return HttpResponse(status=400)
+
+
+@api_view(['POST'])
+def image(request, pk):
+    if request.method == 'POST':
+        drive = get_object_or_404(Drive, pk=pk)
+
+        if drive.user != request.user:
+            return HttpResponse(status=403)
+
+        serializer = DrivingImageSerializer(data=request.data)
+
+        if not serializer.is_valid():
+            return HttpResponse(status=400)
+
+        driving_img = DrivingImage(drive=drive, image=serializer.validated_data.get('image'))
+        driving_img.save()
 
 
 @api_view(['POST'])
