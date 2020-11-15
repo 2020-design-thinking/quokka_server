@@ -2,7 +2,7 @@ from django.db import models
 
 
 class Drive(models.Model):
-    user = models.ForeignKey('users.User', on_delete=models.CASCADE)
+    driver = models.ForeignKey('users.User', on_delete=models.CASCADE)
     device = models.ForeignKey('devices.Device', on_delete=models.CASCADE)
 
     start_timestamp = models.DateTimeField(auto_now_add=True)

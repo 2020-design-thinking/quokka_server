@@ -12,3 +12,5 @@ class User(AbstractUser):
 
     points = models.IntegerField('points', default=0)
     safety_rate = models.FloatField('safety_rate', default=0)
+
+    last_drive = models.ForeignKey('drive.Drive', null=True, on_delete=models.SET_NULL)

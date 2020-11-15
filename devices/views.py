@@ -75,4 +75,7 @@ class DeviceViewSet(viewsets.ModelViewSet):
         device.using = True
         device.save()
 
+        request.user.last_drive = drv
+        request.user.save()
+
         return JsonResponse({'pk': drv.pk})

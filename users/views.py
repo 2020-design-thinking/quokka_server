@@ -11,21 +11,20 @@ from .models import User
 from .serializers import UserSerializer
 
 
-@api_view(['POST'])
-def login(request):
-    if request.method == 'POST':
+class UserViewSet(viewsets.ModelViewSet):
+    serializers = {
+        'login': AuthTokenSerializer,
+        'default': UserSerializer
+    }
+
+    def login(self, request):
         serializer = AuthTokenSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
         token, created = Token.objects.get_or_create(user=user)
         return Response({'token': token.key})
 
-    return HttpResponse(status=400)
-
-
-@api_view(['POST'])
-def register(request):
-    if request.method == 'POST':
+    def register(self, request):
         serializer = UserSerializer(data=request.data)
 
         if serializer.is_valid():
@@ -37,12 +36,7 @@ def register(request):
                                      birth=serializer.validated_data['birth'])
             return HttpResponse(status=201)
 
-    return HttpResponse(status=400)
-
-
-@api_view(['GET'])
-def get_details(request, pk):
-    if request.method == 'GET':
+    def get_details(self, request, pk):
         user = get_object_or_404(User, pk=pk)
         return JsonResponse({'username': user.username,
                              'first_name': user.first_name,
@@ -50,4 +44,5 @@ def get_details(request, pk):
                              'points': user.points,
                              'safety_rate': user.safety_rate})
 
-    return HttpResponse(status=400)
+    def get_serializer_class(self):
+        return self.serializers.get(self.action, self.serializers['default'])

@@ -3,6 +3,7 @@ from datetime import datetime
 from django.core import serializers
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404
+from rest_framework import viewsets
 from rest_framework.decorators import api_view
 
 from devices.models import Device
@@ -13,9 +14,14 @@ from judge.models import DrivingImage
 from judge.serializers import DrivingImageSerializer
 
 
-@api_view(['POST'])
-def update(request, pk):
-    if request.method == 'POST':
+class DriveViewSet(viewsets.ModelViewSet):
+    serializers = {
+        'update': LocationSampleSerializer,
+        'image': DrivingImageSerializer,
+        'default': None
+    }
+
+    def update(self, request, pk):
         serialize = LocationSampleSerializer(data=request.data)
 
         lat = serialize.validated_data.get('lat', None)
@@ -27,7 +33,7 @@ def update(request, pk):
 
         drive = get_object_or_404(Drive, pk=pk)
 
-        if drive.user != request.user:
+        if drive.driver != request.user:
             return HttpResponse(status=403)
 
         sample = LocationSample(drive=drive, lat=lat, lng=lng, speed=speed)
@@ -40,32 +46,10 @@ def update(request, pk):
 
         return HttpResponse(status=200)
 
-    return HttpResponse(status=400)
-
-
-@api_view(['POST'])
-def image(request, pk):
-    if request.method == 'POST':
+    def end(self, request, pk):
         drive = get_object_or_404(Drive, pk=pk)
 
-        if drive.user != request.user:
-            return HttpResponse(status=403)
-
-        serializer = DrivingImageSerializer(data=request.data)
-
-        if not serializer.is_valid():
-            return HttpResponse(status=400)
-
-        driving_img = DrivingImage(drive=drive, image=serializer.validated_data.get('image'))
-        driving_img.save()
-
-
-@api_view(['POST'])
-def end(request, pk):
-    if request.method == 'POST':
-        drive = get_object_or_404(Drive, pk=pk)
-
-        if drive.user != request.user:
+        if drive.driver != request.user:
             return HttpResponse(status=403)
 
         drive.end_timestamp = datetime.now()
@@ -77,3 +61,7 @@ def end(request, pk):
         device.save()
 
         # TODO: Calculate a charge, safety_rate
+        return HttpResponse(status=200)
+
+    def get_serializer_class(self):
+        return self.serializers.get(self.action, self.serializers['default'])
