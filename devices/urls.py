@@ -1,10 +1,17 @@
 from django.urls import path, include
 from . import views
+from .views import DeviceViewSet
 
 urlpatterns = [
-    path('', views.get_list, name='devices'),
-    path('create/', views.create, name='devices'),
-    path('<int:pk>/delete', views.delete, name='devices'),
-    path('<int:pk>/update', views.update, name='devices'),
-    path('<int:pk>/drive', views.drive, name='devices')
+    path('', DeviceViewSet.as_view({
+        'get': 'get_list',
+        'post': 'create'
+    }), name='devices'),
+    path('<int:pk>/', DeviceViewSet.as_view({
+        'delete': 'delete',
+        'put': 'update'
+    }), name='devices'),
+    path('<int:pk>/drive', DeviceViewSet.as_view({
+        'put': 'drive'
+    }), name='devices')
 ]
