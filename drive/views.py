@@ -5,6 +5,7 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404
 from rest_framework import viewsets
 from rest_framework.decorators import api_view
+from rest_framework.parsers import MultiPartParser
 
 from devices.models import Device
 from devices.serializers import DeviceSerializer
@@ -20,6 +21,8 @@ class DriveViewSet(viewsets.ModelViewSet):
         'image': DrivingImageSerializer,
         'default': None
     }
+    parser_classes = (MultiPartParser,)
+    queryset = Drive.objects.all()
 
     def update(self, request, pk):
         serialize = LocationSampleSerializer(data=request.data)

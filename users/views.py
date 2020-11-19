@@ -4,6 +4,7 @@ from django.shortcuts import render, get_object_or_404
 from rest_framework import viewsets
 from rest_framework.decorators import action, api_view
 from rest_framework.authtoken.models import Token
+from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 
@@ -16,6 +17,8 @@ class UserViewSet(viewsets.ModelViewSet):
         'login': AuthTokenSerializer,
         'default': UserSerializer
     }
+    parser_classes = (MultiPartParser,)
+    queryset = User.objects.all()
 
     def login(self, request):
         serializer = AuthTokenSerializer(data=request.data)

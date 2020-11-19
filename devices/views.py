@@ -5,6 +5,7 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404
 from rest_framework import viewsets
 from rest_framework.decorators import api_view, action
+from rest_framework.parsers import MultiPartParser
 
 from devices.models import Device
 from devices.serializers import DeviceSerializer
@@ -13,6 +14,8 @@ from drive.models import Drive
 
 class DeviceViewSet(viewsets.ModelViewSet):
     serializer_class = DeviceSerializer
+    parser_classes = (MultiPartParser,)
+    queryset = Device.objects.all()
 
     def get_list(self, request):
         return HttpResponse(serializers.serialize('json', Device.objects.all()))
