@@ -13,6 +13,8 @@ from drive.models import Drive, LocationSample
 from drive.serializers import LocationSampleSerializer
 from judge.models import DrivingImage
 from judge.serializers import DrivingImageSerializer
+from core.charge import calculate_charge
+from core.safety_rate import calculate_safety_rate
 
 
 class DriveViewSet(viewsets.ModelViewSet):
@@ -63,7 +65,13 @@ class DriveViewSet(viewsets.ModelViewSet):
         device.using = False
         device.save()
 
-        # TODO: Calculate a charge, safety_rate
+        charge = calculate_charge(drive)
+        safety_rate = calculate_safety_rate(drive)
+
+        drive.charge = charge
+        drive.safety_rate = safety_rate
+        drive.save()
+
         return HttpResponse(status=200)
 
     def get_serializer_class(self):
