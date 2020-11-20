@@ -49,3 +49,14 @@ class UserViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         return self.serializers.get(self.action, self.serializers['default'])
+
+    def cancel_reserve(self, request):
+        if request.user.is_anonymous:
+            return HttpResponse(status=403)
+
+        if not request.user.is_reserved():
+            return HttpResponse('NOT_RESERVED', status=400)
+
+        request.user.cancel_reserve()
+
+        return HttpResponse(status=200)

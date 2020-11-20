@@ -13,5 +13,8 @@ urlpatterns = [
     }), name='devices'),
     path('<int:pk>/drive', DeviceViewSet.as_view({
         'put': 'drive'
-    }), name='devices')
+    }), name='devices'),
+    path('<int:pk>/reserve', DeviceViewSet.as_view({
+        'post': 'reserve'
+    }))
 ]

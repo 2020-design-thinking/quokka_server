@@ -82,3 +82,18 @@ class DeviceViewSet(viewsets.ModelViewSet):
         request.user.save()
 
         return JsonResponse({'pk': drv.pk})
+
+    def reserve(self, request, pk):
+        if request.user.is_anonymous:
+            return HttpResponse(status=403)
+
+        if request.user.reserve_penalty:
+            return HttpResponse('RESERVE_PENALTY', status=400)
+
+        if request.user.is_reserved():
+            return HttpResponse('ALREADY_RESERVED', status=400)
+
+        device = get_object_or_404(Device, pk=pk)
+        request.user.reserve(device)
+
+        return HttpResponse(status=200)

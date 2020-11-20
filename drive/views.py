@@ -14,7 +14,7 @@ from drive.serializers import LocationSampleSerializer
 from judge.models import DrivingImage
 from judge.serializers import DrivingImageSerializer
 from core.charge import calculate_charge
-from core.safety_rate import calculate_safety_rate
+from core.points import calculate_points, calculate_charge_points, calculate_safety_points
 
 
 class DriveViewSet(viewsets.ModelViewSet):
@@ -57,20 +57,15 @@ class DriveViewSet(viewsets.ModelViewSet):
         if drive.driver != request.user:
             return HttpResponse(status=403)
 
-        drive.end_timestamp = datetime.now()
-        drive.end = True
-        drive.save()
+        drive.finish()
 
         device = drive.device
         device.using = False
         device.save()
 
-        charge = calculate_charge(drive)
-        safety_rate = calculate_safety_rate(drive)
-
-        drive.charge = charge
-        drive.safety_rate = safety_rate
-        drive.save()
+        drive.driver.add_points(calculate_points(drive.dist), "DRIVE", drive)
+        drive.driver.add_points(calculate_safety_points(drive.dist), "SAFETY", drive)
+        drive.driver.add_points(calculate_charge_points(drive.dist), "CHARGE", drive)
 
         return HttpResponse(status=200)
 
