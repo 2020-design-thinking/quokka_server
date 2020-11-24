@@ -75,23 +75,34 @@ def judge_image(pk):
     for i in range(len(boxes)):
         if i in indexes:
             x, y, w, h = boxes[i]
-            if h / height < 0.2:
+            if h / height < 0.1:
                 continue
-            rate = clamp01(inv_lerp(0.2, 0.6, h / height))
+            rate = clamp01(inv_lerp(0.1, 0.4, h / height))
             cx = (x + w / 2) / width
             if x < 0.33:
-                rate *= lerp(0.75, 1.0, cx * (1 / 0.33))
+                rate *= lerp(0.9, 1.0, cx * (1 / 0.33))
             elif x > 0.67:
-                rate *= lerp(1.0, 0.75, (1 - cx) * (1 / 0.33))
+                rate *= lerp(1.0, 0.9, (1 - cx) * (1 / 0.33))
 
             spd = lerp(1.0, 0.4, rate) * max_speed
             target_speed = min(target_speed, spd)
 
-    print(str(indexes.size) + " Person(s) Found!")
-    print("Maximum Speed: " + str(target_speed))
-    print("Execution Time: " + str(time.time() - st) + "s.")
+    if len(indexes) == 0:
+        print("No Person Found")
 
-    safety_rate = inv_lerp(target_speed + 5, target_speed, record.speed)
+        score = SafetyScore(drive=record.drive, score=1.0)
+        score.save()
+
+        return
+
+    print(str(indexes.size) + " Person(s) Found!")
+    print("Speed = " + str(record.speed))
+
+    safety_rate = clamp01(inv_lerp(target_speed + 5, target_speed, record.speed))
+
+    print("Maximum Speed: " + str(target_speed))
+    print("Score: " + str(safety_rate))
+    print("Execution Time: " + str(time.time() - st) + "s.")
 
     score = SafetyScore(drive=record.drive, score=safety_rate)
     score.save()
@@ -104,9 +115,10 @@ def judge_image(pk):
             label = str(classes[class_ids[i]])
             color = colors[i]
             cv2.rectangle(cv_img, (x, y), (x + w, y + h), color, 2)
-    cv2.putText(cv_img, "Target Speed = " + str(target_speed) + "km/h", (0, 30), font, 3, [0, 255, 0], 2)
+    cv2.putText(cv_img, str(target_speed) + "km/h", (0, 30), font, 2, [0, 255, 0], 2)
     cv2.imshow("Image", cv_img)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
     """
+
 

@@ -1,7 +1,58 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module type="PYTHON_MODULE" version="4">
   <component name="NewModuleRootManager">
-    <content url="file://$MODULE_DIR$" />
+    <content url="file://$MODULE_DIR$">
+      <excludeFolder url="file://$MODULE_DIR$/media/images/1" />
+      <excludeFolder url="file://$MODULE_DIR$/media/images/10" />
+      <excludeFolder url="file://$MODULE_DIR$/media/images/11" />
+      <excludeFolder url="file://$MODULE_DIR$/media/images/12" />
+      <excludeFolder url="file://$MODULE_DIR$/media/images/13" />
+      <excludeFolder url="file://$MODULE_DIR$/media/images/14" />
+      <excludeFolder url="file://$MODULE_DIR$/media/images/15" />
+      <excludeFolder url="file://$MODULE_DIR$/media/images/16" />
+      <excludeFolder url="file://$MODULE_DIR$/media/images/17" />
+      <excludeFolder url="file://$MODULE_DIR$/media/images/18" />
+      <excludeFolder url="file://$MODULE_DIR$/media/images/19" />
+      <excludeFolder url="file://$MODULE_DIR$/media/images/2" />
+      <excludeFolder url="file://$MODULE_DIR$/media/images/20" />
+      <excludeFolder url="file://$MODULE_DIR$/media/images/21" />
+      <excludeFolder url="file://$MODULE_DIR$/media/images/22" />
+      <excludeFolder url="file://$MODULE_DIR$/media/images/23" />
+      <excludeFolder url="file://$MODULE_DIR$/media/images/24" />
+      <excludeFolder url="file://$MODULE_DIR$/media/images/25" />
+      <excludeFolder url="file://$MODULE_DIR$/media/images/26" />
+      <excludeFolder url="file://$MODULE_DIR$/media/images/27" />
+      <excludeFolder url="file://$MODULE_DIR$/media/images/28" />
+      <excludeFolder url="file://$MODULE_DIR$/media/images/29" />
+      <excludeFolder url="file://$MODULE_DIR$/media/images/3" />
+      <excludeFolder url="file://$MODULE_DIR$/media/images/30" />
+      <excludeFolder url="file://$MODULE_DIR$/media/images/31" />
+      <excludeFolder url="file://$MODULE_DIR$/media/images/32" />
+      <excludeFolder url="file://$MODULE_DIR$/media/images/33" />
+      <excludeFolder url="file://$MODULE_DIR$/media/images/34" />
+      <excludeFolder url="file://$MODULE_DIR$/media/images/35" />
+      <excludeFolder url="file://$MODULE_DIR$/media/images/36" />
+      <excludeFolder url="file://$MODULE_DIR$/media/images/37" />
+      <excludeFolder url="file://$MODULE_DIR$/media/images/38" />
+      <excludeFolder url="file://$MODULE_DIR$/media/images/39" />
+      <excludeFolder url="file://$MODULE_DIR$/media/images/4" />
+      <excludeFolder url="file://$MODULE_DIR$/media/images/40" />
+      <excludeFolder url="file://$MODULE_DIR$/media/images/41" />
+      <excludeFolder url="file://$MODULE_DIR$/media/images/42" />
+      <excludeFolder url="file://$MODULE_DIR$/media/images/43" />
+      <excludeFolder url="file://$MODULE_DIR$/media/images/44" />
+      <excludeFolder url="file://$MODULE_DIR$/media/images/5" />
+      <excludeFolder url="file://$MODULE_DIR$/media/images/6" />
+      <excludeFolder url="file://$MODULE_DIR$/media/images/7" />
+      <excludeFolder url="file://$MODULE_DIR$/media/images/8" />
+      <excludeFolder url="file://$MODULE_DIR$/media/images/88" />
+      <excludeFolder url="file://$MODULE_DIR$/media/images/9" />
+      <excludeFolder url="file://$MODULE_DIR$/media/images/92" />
+      <excludeFolder url="file://$MODULE_DIR$/media/images/93" />
+      <excludeFolder url="file://$MODULE_DIR$/media/images/95" />
+      <excludeFolder url="file://$MODULE_DIR$/media/images/96" />
+      <excludeFolder url="file://$MODULE_DIR$/media/images/97" />
+    </content>
     <orderEntry type="jdk" jdkName="Python 3.8 (base)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>

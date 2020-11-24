@@ -12,8 +12,8 @@ class DrivingImage(models.Model):
 
     timestamp = models.DateTimeField(auto_now_add=True)
 
-    lat = models.DecimalField(max_digits=9, decimal_places=6, default=0)
-    lng = models.DecimalField(max_digits=9, decimal_places=6, default=0)
+    lat = models.FloatField(default=0)
+    lng = models.FloatField(default=0)
     speed = models.IntegerField(default=0)
 
     image = models.ImageField(upload_to=get_upload_path, null=False)

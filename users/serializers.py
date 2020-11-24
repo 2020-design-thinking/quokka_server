@@ -12,3 +12,7 @@ class PasswordSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['username', 'password']
+
+
+class TokenSerializer(serializers.Serializer):
+    token = serializers.CharField(allow_blank=False, max_length=100)

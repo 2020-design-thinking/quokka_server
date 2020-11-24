@@ -4,28 +4,37 @@ from django.shortcuts import render, get_object_or_404
 from rest_framework import viewsets
 from rest_framework.decorators import action, api_view
 from rest_framework.authtoken.models import Token
-from rest_framework.parsers import MultiPartParser
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 
 from .models import User
-from .serializers import UserSerializer
+from .serializers import UserSerializer, TokenSerializer
 
 
 class UserViewSet(viewsets.ModelViewSet):
     serializers = {
         'login': AuthTokenSerializer,
+        'auth': TokenSerializer,
         'default': UserSerializer
     }
-    parser_classes = (MultiPartParser,)
+    parser_classes = (FormParser,)
     queryset = User.objects.all()
 
     def login(self, request):
         serializer = AuthTokenSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+
         user = serializer.validated_data['user']
         token, created = Token.objects.get_or_create(user=user)
-        return Response({'token': token.key})
+        return Response({'token': token.key, 'user_id': token.user_id})
+
+    def auth(self, request):
+        serializer = TokenSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        token = get_object_or_404(Token, key=serializer.validated_data['token'])
+        return Response({'token': token.key, 'user_id': token.user_id})
 
     def register(self, request):
         serializer = UserSerializer(data=request.data)
@@ -37,7 +46,8 @@ class UserViewSet(viewsets.ModelViewSet):
                                      first_name=serializer.validated_data['first_name'],
                                      last_name=serializer.validated_data['last_name'],
                                      birth=serializer.validated_data['birth'])
-            return HttpResponse(status=201)
+            return HttpResponse(status=200)
+        return HttpResponse(status=400)
 
     def get_details(self, request, pk):
         user = get_object_or_404(User, pk=pk)

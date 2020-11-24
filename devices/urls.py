@@ -7,12 +7,12 @@ urlpatterns = [
         'get': 'get_list',
         'post': 'create'
     }), name='devices'),
-    path('<int:pk>/', DeviceViewSet.as_view({
+    path('<int:pk>', DeviceViewSet.as_view({
         'delete': 'delete',
         'put': 'update'
     }), name='devices'),
     path('<int:pk>/drive', DeviceViewSet.as_view({
-        'put': 'drive'
+        'post': 'drive'
     }), name='devices'),
     path('<int:pk>/reserve', DeviceViewSet.as_view({
         'post': 'reserve'

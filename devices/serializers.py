@@ -5,4 +5,4 @@ from .models import Device
 class DeviceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Device
-        fields = ['lat', 'lng', 'battery']
+        fields = ['lat', 'lng', 'battery', 'pk', 'using']

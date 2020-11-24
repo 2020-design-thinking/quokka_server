@@ -4,6 +4,8 @@ from math import cos, asin, sqrt, pi
 from django.db import models
 
 # https://stackoverflow.com/questions/27928/calculate-distance-between-two-latitude-longitude-points-haversine-formula
+from core.charge import calculate_charge
+from core.points import calculate_safety_points
 from judge.models import SafetyScore
 
 
@@ -21,10 +23,13 @@ class Drive(models.Model):
     end_timestamp = models.DateTimeField(auto_now_add=True)
     ended = models.BooleanField(default=False)
 
-    charge = models.IntegerField(default=0)
+    driving_charge = models.IntegerField(default=0)
     safety_rate = models.FloatField(default=-1)
 
     dist = models.DecimalField(max_digits=5, decimal_places=1, default=-1)
+
+    discounted_charge = models.IntegerField(default=0)
+    charge = models.IntegerField(default=0)
 
     def calculate_total_distance(self):
         locations = LocationSample.objects.filter(drive=self)
@@ -45,9 +50,13 @@ class Drive(models.Model):
         average = 0
         for score in scores:
             average += score.score
-        average /= len(scores)
 
-        self.safety_rate = round(average, 1)
+        if len(scores) == 0:
+            average = 0
+        else:
+            average /= len(scores)
+
+        self.safety_rate = round(average, 1) * 5
         self.save()
 
     def finish(self):
@@ -57,13 +66,17 @@ class Drive(models.Model):
         self.calculate_total_distance()
         self.calculate_safety_rate()
 
+        self.driving_charge = calculate_charge(self.dist)
+        self.discounted_charge = calculate_safety_points(self.safety_rate, self.dist)
+        self.charge = max(self.driving_charge - self.discounted_charge, 0)
+
         self.save()
 
 
 class LocationSample(models.Model):
-    drive = models.ForeignKey('Drive', on_delete=models.CASCADE)
+    drive = models.ForeignKey('Drive', on_delete=models.CASCADE, null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
 
-    lat = models.DecimalField(max_digits=9, decimal_places=6, default=0)
-    lng = models.DecimalField(max_digits=9, decimal_places=6, default=0)
+    lat = models.FloatField(default=0)
+    lng = models.FloatField(default=0)
     speed = models.IntegerField(default=0)

@@ -8,7 +8,7 @@ from rest_framework.generics import CreateAPIView
 from rest_framework.parsers import MultiPartParser
 
 from devices.models import Device
-from drive.models import Drive
+from drive.models import Drive, LocationSample
 from judge.models import DrivingImage
 from judge.serializers import DrivingImageSerializer
 
@@ -34,12 +34,29 @@ class JudgeViewSet(viewsets.ModelViewSet):
         if not serializer.is_valid():
             return HttpResponse(status=400)
 
-        driving_img = DrivingImage(drive=drive, image=serializer.validated_data.get('image'))
+        lat = 0
+        lng = 0
+        speed = 0
+        ls = LocationSample.objects.filter(drive=drive).latest('timestamp')
+        if ls is not None:
+            lat = ls.lat
+            lng = ls.lng
+            speed = ls.speed
+
+        driving_img = DrivingImage(drive=drive, image=serializer.validated_data.get('image'),
+                                   lat=lat, lng=lng, speed=speed)
         driving_img.save()
+
+        judge_image.delay(driving_img.pk)
+
+        return HttpResponse(status=200)
 
     def image_test(self, request):
         if request.user.is_anonymous:
-            return HttpResponse(status=403)
+            pass
+            # return HttpResponse(status=403)
+
+        print("test:", request.data)
 
         serializer = DrivingImageSerializer(data=request.data)
 

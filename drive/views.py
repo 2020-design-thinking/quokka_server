@@ -5,12 +5,12 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404
 from rest_framework import viewsets
 from rest_framework.decorators import api_view
-from rest_framework.parsers import MultiPartParser
+from rest_framework.parsers import MultiPartParser, FormParser
 
 from devices.models import Device
 from devices.serializers import DeviceSerializer
 from drive.models import Drive, LocationSample
-from drive.serializers import LocationSampleSerializer
+from drive.serializers import LocationSampleSerializer, DriveSerializer
 from judge.models import DrivingImage
 from judge.serializers import DrivingImageSerializer
 from core.charge import calculate_charge
@@ -23,11 +23,14 @@ class DriveViewSet(viewsets.ModelViewSet):
         'image': DrivingImageSerializer,
         'default': None
     }
-    parser_classes = (MultiPartParser,)
+    parser_classes = (FormParser,)
     queryset = Drive.objects.all()
 
     def update(self, request, pk):
         serialize = LocationSampleSerializer(data=request.data)
+
+        if not serialize.is_valid():
+            return HttpResponse(status=400)
 
         lat = serialize.validated_data.get('lat', None)
         lng = serialize.validated_data.get('lng', None)
@@ -51,7 +54,7 @@ class DriveViewSet(viewsets.ModelViewSet):
 
         return HttpResponse(status=200)
 
-    def end(self, request, pk):
+    def finish(self, request, pk):
         drive = get_object_or_404(Drive, pk=pk)
 
         if drive.driver != request.user:
@@ -64,10 +67,21 @@ class DriveViewSet(viewsets.ModelViewSet):
         device.save()
 
         drive.driver.add_points(calculate_points(drive.dist), "DRIVE", drive)
-        drive.driver.add_points(calculate_safety_points(drive.dist), "SAFETY", drive)
-        drive.driver.add_points(calculate_charge_points(drive.dist), "CHARGE", drive)
+        drive.driver.add_points(calculate_safety_points(drive.safety_rate, drive.dist), "SAFETY", drive)
+        drive.driver.add_points(calculate_charge_points(device), "CHARGE", drive)
 
-        return HttpResponse(status=200)
+        # TODO: 거리, 요금, 안전 평점, 추가된 포인트 정보 제공
+        return JsonResponse(DriveSerializer(drive).data, safe=False)
+
+    def status(self, request, pk):
+        drive = get_object_or_404(Drive, pk=pk)
+
+        if drive.driver != request.user:
+            return HttpResponse(status=403)
+
+        drive.calculate_total_distance()
+
+        return JsonResponse({'dist': drive.dist, 'charge': calculate_charge(drive.dist)})
 
     def get_serializer_class(self):
         return self.serializers.get(self.action, self.serializers['default'])

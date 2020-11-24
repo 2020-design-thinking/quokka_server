@@ -3,8 +3,9 @@ from . import views
 from .views import DriveViewSet
 
 urlpatterns = [
-    path('<int:pk>/', DriveViewSet.as_view({
+    path('<int:pk>', DriveViewSet.as_view({
+        'get': 'status',
         'put': 'update',
-        'delete': 'end'
+        'delete': 'finish'
     }), name='drive')
 ]

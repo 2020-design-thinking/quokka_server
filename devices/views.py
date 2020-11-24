@@ -5,7 +5,7 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404
 from rest_framework import viewsets
 from rest_framework.decorators import api_view, action
-from rest_framework.parsers import MultiPartParser
+from rest_framework.parsers import MultiPartParser, FormParser
 
 from devices.models import Device
 from devices.serializers import DeviceSerializer
@@ -14,21 +14,17 @@ from drive.models import Drive
 
 class DeviceViewSet(viewsets.ModelViewSet):
     serializer_class = DeviceSerializer
-    parser_classes = (MultiPartParser,)
+    parser_classes = (FormParser,)
     queryset = Device.objects.all()
 
     def get_list(self, request):
-        return HttpResponse(serializers.serialize('json', Device.objects.all()))
+        return JsonResponse(DeviceSerializer(Device.objects.all(), many=True).data, safe=False)
 
     def create(self, request):
         if not request.user.is_superuser:
             return HttpResponse(status=403)
 
-        print(request.user)
-        name = "쿼카 #{}".format(random.randrange(1, 10000))
-        while len(Device.objects.filter(name=name)) > 0:
-            name = "쿼카 #{}".format(random.randrange(1, 10000))
-        device = Device(name=name)
+        device = Device()
         device.save()
         return HttpResponse(status=200)
 
@@ -45,7 +41,7 @@ class DeviceViewSet(viewsets.ModelViewSet):
         serialize = DeviceSerializer(device, data=request.data)
 
         if not serialize.is_valid():
-            return HttpResponse(400)
+            return HttpResponse(status=400)
 
         battery = serialize.validated_data.get('battery', None)
         if battery:
@@ -70,9 +66,12 @@ class DeviceViewSet(viewsets.ModelViewSet):
         device = get_object_or_404(Device, pk=pk)
 
         if device.using:
-            return HttpResponse(status=403)
+            return HttpResponse("INUSE", status=400)
 
-        drv = Drive(user=request.user, device=device)
+        if device.is_reserved():
+            return HttpResponse("RESERVED", status=400)
+
+        drv = Drive(driver=request.user, device=device)
         drv.save()
 
         device.using = True
