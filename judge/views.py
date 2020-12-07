@@ -12,7 +12,8 @@ from drive.models import Drive, LocationSample
 from judge.models import DrivingImage, SafetyScore
 from judge.serializers import DrivingImageSerializer
 
-from judge.tasks import judge_image
+from judge.tasks import judge_image, inv_lerp, clamp01
+from map_data.models import is_in_safe_zone
 
 
 class JudgeViewSet(viewsets.ModelViewSet):
@@ -50,8 +51,11 @@ class JudgeViewSet(viewsets.ModelViewSet):
         # judge_image.delay(driving_img.pk)
         # 이거 다 judge_image로 옮겨주세요
         print("temp judging")
-        if speed > 25:
-            score = SafetyScore(drive=drive, score=5, reason=2)
+        if is_in_safe_zone(lat, lng) and speed > 15:
+            score = SafetyScore(drive=drive, score=clamp01(inv_lerp(15, 25, speed)), reason=1)
+            score.save()
+        elif speed > 25:
+            score = SafetyScore(drive=drive, score=clamp01(inv_lerp(25, 35, speed)), reason=2)
             score.save()
         else:
             score = SafetyScore(drive=drive, score=10, reason=0)

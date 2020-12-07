@@ -45,7 +45,8 @@ INSTALLED_APPS = [
     'users',
     'devices',
     'drive',
-    'judge'
+    'judge',
+    'map_data'
 ]
 
 MIDDLEWARE = [
