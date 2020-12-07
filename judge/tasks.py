@@ -90,7 +90,7 @@ def judge_image(pk):
     if len(indexes) == 0:
         print("No Person Found")
 
-        score = SafetyScore(drive=record.drive, score=1.0)
+        score = SafetyScore(drive=record.drive, score=10)
         score.save()
 
         return
@@ -104,8 +104,18 @@ def judge_image(pk):
     print("Score: " + str(safety_rate))
     print("Execution Time: " + str(time.time() - st) + "s.")
 
-    score = SafetyScore(drive=record.drive, score=safety_rate)
+    # TODO: Refactoring
+    score = SafetyScore(drive=record.drive, score=int(safety_rate * 10), reason=0)
     score.save()
+
+    """
+    if record.speed > 50:
+        score = SafetyScore(drive=record.drive, score=5, reason=1)
+        score.save()
+    """
+
+
+
 
     """
     font = cv2.FONT_HERSHEY_PLAIN

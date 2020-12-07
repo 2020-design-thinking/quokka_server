@@ -1,7 +1,7 @@
-from datetime import datetime
 from math import cos, asin, sqrt, pi
 
 from django.db import models
+from django.utils import timezone
 
 # https://stackoverflow.com/questions/27928/calculate-distance-between-two-latitude-longitude-points-haversine-formula
 from core.charge import calculate_charge
@@ -28,7 +28,8 @@ class Drive(models.Model):
 
     dist = models.DecimalField(max_digits=5, decimal_places=1, default=-1)
 
-    discounted_charge = models.IntegerField(default=0)
+    charge_discount = models.IntegerField(default=0)
+    safety_discount = models.IntegerField(default=0)
     charge = models.IntegerField(default=0)
 
     def calculate_total_distance(self):
@@ -38,7 +39,7 @@ class Drive(models.Model):
             f_dist += distance(float(locations[i - 1].lat), float(locations[i - 1].lng), float(locations[i].lat),
                                float(locations[i].lng))
 
-        self.dist = f_dist
+        self.dist = round(f_dist, 1)
         self.save()
 
     def calculate_safety_rate(self):
@@ -49,7 +50,7 @@ class Drive(models.Model):
 
         average = 0
         for score in scores:
-            average += score.score
+            average += score.score / 10.0
 
         if len(scores) == 0:
             average = 0
@@ -57,20 +58,28 @@ class Drive(models.Model):
             average /= len(scores)
 
         self.safety_rate = round(average, 1) * 5
+        print("safety_rate =", self.safety_rate)
         self.save()
 
     def finish(self):
-        self.end_timestamp = datetime.now()
+        self.end_timestamp = timezone.now()
         self.end = True
 
         self.calculate_total_distance()
         self.calculate_safety_rate()
 
         self.driving_charge = calculate_charge(self.dist)
-        self.discounted_charge = calculate_safety_points(self.safety_rate, self.dist)
-        self.charge = max(self.driving_charge - self.discounted_charge, 0)
+        self.charge_discount = 0  # TODO
+        self.safety_discount = calculate_safety_points(self.safety_rate, self.dist)
+        self.charge = max(int((self.driving_charge - self.charge_discount) * (1 - self.safety_discount / 100)), 0)
 
         self.save()
+
+    def get_last_warning(self):
+        res = SafetyScore.objects.filter(drive=self, score__lt=10)
+        if len(res) == 0:
+            return None
+        return res.latest('judge_timestamp')
 
 
 class LocationSample(models.Model):

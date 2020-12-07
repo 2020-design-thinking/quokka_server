@@ -81,7 +81,18 @@ class DriveViewSet(viewsets.ModelViewSet):
 
         drive.calculate_total_distance()
 
-        return JsonResponse({'dist': drive.dist, 'charge': calculate_charge(drive.dist)})
+        last_warn = drive.get_last_warning()
+
+        print("--drive status--")
+        print(0 if last_warn is None else last_warn.judge_timestamp.timestamp())
+        print(-1 if last_warn is None else last_warn.reason)
+
+        return JsonResponse({
+            'dist': drive.dist,
+            'charge': calculate_charge(drive.dist),
+            'last_warn_timestamp': 0 if last_warn is None else int(last_warn.judge_timestamp.timestamp()),
+            'last_warn_type': -1 if last_warn is None else last_warn.reason
+        })
 
     def get_serializer_class(self):
         return self.serializers.get(self.action, self.serializers['default'])

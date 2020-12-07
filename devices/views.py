@@ -18,7 +18,17 @@ class DeviceViewSet(viewsets.ModelViewSet):
     queryset = Device.objects.all()
 
     def get_list(self, request):
-        return JsonResponse(DeviceSerializer(Device.objects.all(), many=True).data, safe=False)
+        res = []
+        for device in Device.objects.all():
+            res.append({
+                'pk': device.pk,
+                'lat': device.lat,
+                'lng': device.lng,
+                'battery': device.battery,
+                'using': device.using,
+                'reserved': device.is_reserved()
+            })
+        return JsonResponse(res, safe=False)
 
     def create(self, request):
         if not request.user.is_superuser:
@@ -68,8 +78,10 @@ class DeviceViewSet(viewsets.ModelViewSet):
         if device.using:
             return HttpResponse("INUSE", status=400)
 
-        if device.is_reserved():
+        if device.is_reserved() and device.reserve.id != request.user.id:
             return HttpResponse("RESERVED", status=400)
+
+        device.clear_reserve()
 
         drv = Drive(driver=request.user, device=device)
         drv.save()
@@ -87,12 +99,16 @@ class DeviceViewSet(viewsets.ModelViewSet):
             return HttpResponse(status=403)
 
         if request.user.reserve_penalty:
-            return HttpResponse('RESERVE_PENALTY', status=400)
+            return JsonResponse({'message': 'RESERVE_PENALTY'}, status=400)
 
         if request.user.is_reserved():
-            return HttpResponse('ALREADY_RESERVED', status=400)
+            return JsonResponse({'message': 'YOU_ALREADY_RESERVED'}, status=400)
 
         device = get_object_or_404(Device, pk=pk)
+
+        if device.is_reserved():
+            return JsonResponse({'message': 'DEVICE_RESERVED'}, status=400)
+
         request.user.reserve(device)
 
-        return HttpResponse(status=200)
+        return JsonResponse({'message': 'SUCCESS'}, status=200)

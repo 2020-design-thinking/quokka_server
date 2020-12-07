@@ -25,8 +25,10 @@ class DrivingImage(models.Model):
 class SafetyScore(models.Model):
     drive = models.ForeignKey('drive.Drive', on_delete=models.CASCADE)
 
+    timestamp = models.DateTimeField(auto_now_add=True)
+
     judge_timestamp = models.DateTimeField(auto_now_add=True)
 
-    score = models.FloatField(default=0)
+    score = models.IntegerField(default=0)  # [0, 10]
 
-    reason = models.CharField(max_length=100, null=True)
+    reason = models.IntegerField(default=0)

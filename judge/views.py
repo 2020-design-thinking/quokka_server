@@ -9,7 +9,7 @@ from rest_framework.parsers import MultiPartParser
 
 from devices.models import Device
 from drive.models import Drive, LocationSample
-from judge.models import DrivingImage
+from judge.models import DrivingImage, SafetyScore
 from judge.serializers import DrivingImageSerializer
 
 from judge.tasks import judge_image
@@ -47,7 +47,15 @@ class JudgeViewSet(viewsets.ModelViewSet):
                                    lat=lat, lng=lng, speed=speed)
         driving_img.save()
 
-        judge_image.delay(driving_img.pk)
+        # judge_image.delay(driving_img.pk)
+        # 이거 다 judge_image로 옮겨주세요
+        print("temp judging")
+        if speed > 25:
+            score = SafetyScore(drive=drive, score=5, reason=2)
+            score.save()
+        else:
+            score = SafetyScore(drive=drive, score=10, reason=0)
+            score.save()
 
         return HttpResponse(status=200)
 

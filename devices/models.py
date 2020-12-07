@@ -1,6 +1,7 @@
-from datetime import datetime
-
 from django.db import models
+from django.utils import timezone
+
+from core.reserve import RESERVE_TIME
 
 
 class Device(models.Model):
@@ -15,4 +16,10 @@ class Device(models.Model):
     reserve_time = models.DateTimeField(null=True)
 
     def is_reserved(self):
-        return self.reserve is not None
+        if self.reserve_time is None:
+            return False
+        return (timezone.now() - self.reserve_time).total_seconds() <= RESERVE_TIME
+
+    def clear_reserve(self):
+        self.reserve = None
+        self.reserve_time = None

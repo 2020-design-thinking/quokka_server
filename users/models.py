@@ -1,8 +1,7 @@
-from datetime import datetime
-
 from django.contrib.auth.models import AbstractUser
 from django.utils.translation import gettext_lazy as _
 from django.db import models
+from django.utils import timezone
 
 from devices.models import Device
 
@@ -32,21 +31,26 @@ class User(AbstractUser):
         self.save()
 
     def is_reserved(self):
-        devices = Device.objects.filter(reserve=self)
-        return len(devices) > 0
+        return self.get_reserved_device() is not None
 
     def get_reserved_device(self):
-        return Device.objects.get(reserve=self)
+        for device in Device.objects.filter(reserve=self):
+            if device.is_reserved():
+                return device
+        return None
 
     def reserve(self, device):
         device.reserve = self
-        device.reserve_time = datetime.now()
+        device.reserve_time = timezone.now()
+        device.save()
 
     def cancel_reserve(self):
         if not self.is_reserved():
             return
         device = self.get_reserved_device()
         device.reserve = None
+        device.reserve_time = None
+        device.save()
 
 
 class PointTransaction(models.Model):

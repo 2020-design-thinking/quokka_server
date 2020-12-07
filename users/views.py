@@ -37,6 +37,9 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response({'token': token.key, 'user_id': token.user_id})
 
     def register(self, request):
+        if len(User.objects.filter(username=request.data['username'])) > 0:
+            return JsonResponse({'message': 'DUP_ID'}, status=200)
+
         serializer = UserSerializer(data=request.data)
 
         if serializer.is_valid():
@@ -46,8 +49,9 @@ class UserViewSet(viewsets.ModelViewSet):
                                      first_name=serializer.validated_data['first_name'],
                                      last_name=serializer.validated_data['last_name'],
                                      birth=serializer.validated_data['birth'])
-            return HttpResponse(status=200)
-        return HttpResponse(status=400)
+            return JsonResponse({'message': 'SUCCESS'}, status=200)
+
+        return JsonResponse({'message': 'UNKNOWN'}, status=400)
 
     def get_details(self, request, pk):
         user = get_object_or_404(User, pk=pk)
@@ -65,8 +69,8 @@ class UserViewSet(viewsets.ModelViewSet):
             return HttpResponse(status=403)
 
         if not request.user.is_reserved():
-            return HttpResponse('NOT_RESERVED', status=400)
+            return JsonResponse({'message': 'NOT_RESERVED'}, status=400)
 
         request.user.cancel_reserve()
 
-        return HttpResponse(status=200)
+        return JsonResponse({'message': 'SUCCESS'}, status=200)
