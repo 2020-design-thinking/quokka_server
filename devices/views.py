@@ -26,7 +26,7 @@ class DeviceViewSet(viewsets.ModelViewSet):
                 'lng': device.lng,
                 'battery': device.battery,
                 'using': device.using,
-                'reserved': device.is_reserved()
+                'reserved': device.is_reserved(request.user)
             })
         return JsonResponse(res, safe=False)
 
@@ -78,7 +78,7 @@ class DeviceViewSet(viewsets.ModelViewSet):
         if device.using:
             return HttpResponse("INUSE", status=400)
 
-        if device.is_reserved() and device.reserve.id != request.user.id:
+        if device.is_reserved(request.user) and device.reserve.id != request.user.id:
             return HttpResponse("RESERVED", status=400)
 
         device.clear_reserve()
@@ -106,7 +106,7 @@ class DeviceViewSet(viewsets.ModelViewSet):
 
         device = get_object_or_404(Device, pk=pk)
 
-        if device.is_reserved():
+        if device.is_reserved(request.user):
             return JsonResponse({'message': 'DEVICE_RESERVED'}, status=400)
 
         request.user.reserve(device)

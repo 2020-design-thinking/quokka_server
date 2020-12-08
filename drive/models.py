@@ -5,7 +5,7 @@ from django.utils import timezone
 
 # https://stackoverflow.com/questions/27928/calculate-distance-between-two-latitude-longitude-points-haversine-formula
 from core.charge import calculate_charge
-from core.points import calculate_safety_points
+from core.points import calculate_safety_points, calculate_charge_points
 from judge.models import SafetyScore
 
 
@@ -57,7 +57,7 @@ class Drive(models.Model):
         else:
             average /= len(scores)
 
-        self.safety_rate = round(average, 1) * 5
+        self.safety_rate = round(average * 5, 1)
         print("safety_rate =", self.safety_rate)
         self.save()
 
@@ -69,14 +69,20 @@ class Drive(models.Model):
         self.calculate_safety_rate()
 
         self.driving_charge = calculate_charge(self.dist)
-        self.charge_discount = 0  # TODO
+        self.charge_discount = calculate_charge_points(self.device)
         self.safety_discount = calculate_safety_points(self.safety_rate, self.dist)
         self.charge = max(int((self.driving_charge - self.charge_discount) * (1 - self.safety_discount / 100)), 0)
 
         self.save()
 
-    def get_last_warning(self):
-        res = SafetyScore.objects.filter(drive=self, score__lt=10)
+    def get_last_speed_warning(self):
+        res = SafetyScore.objects.filter(drive=self, score__lt=8, reason__in=[1, 2])
+        if len(res) == 0:
+            return None
+        return res.latest('judge_timestamp')
+
+    def get_last_people_warning(self):
+        res = SafetyScore.objects.filter(drive=self, score__lt=6, reason=0)
         if len(res) == 0:
             return None
         return res.latest('judge_timestamp')

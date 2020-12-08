@@ -1,3 +1,5 @@
+import time
+
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from drf_yasg.utils import swagger_auto_schema
@@ -22,6 +24,7 @@ class JudgeViewSet(viewsets.ModelViewSet):
     parser_classes = (MultiPartParser,)
 
     def image(self, request):
+        # st = time.time()
         if request.user.is_anonymous:
             return HttpResponse(status=403)
 
@@ -48,18 +51,18 @@ class JudgeViewSet(viewsets.ModelViewSet):
                                    lat=lat, lng=lng, speed=speed)
         driving_img.save()
 
-        # judge_image.delay(driving_img.pk)
-        # 이거 다 judge_image로 옮겨주세요
-        print("temp judging")
         if is_in_safe_zone(lat, lng) and speed > 15:
-            score = SafetyScore(drive=drive, score=clamp01(inv_lerp(15, 25, speed)), reason=1)
+            score = SafetyScore(drive=drive, score=int(clamp01(inv_lerp(25, 15, speed)) * 5), reason=1)
             score.save()
         elif speed > 25:
-            score = SafetyScore(drive=drive, score=clamp01(inv_lerp(25, 35, speed)), reason=2)
+            score = SafetyScore(drive=drive, score=int(clamp01(inv_lerp(35, 25, speed)) * 5), reason=2)
             score.save()
         else:
             score = SafetyScore(drive=drive, score=10, reason=0)
             score.save()
+
+        # judge_image.delay(driving_img.pk)
+        # judge_image(driving_img.pk)
 
         return HttpResponse(status=200)
 

@@ -7,6 +7,8 @@ from judge.models import DrivingImage, SafetyScore
 import cv2
 import numpy as np
 
+from quokka_server.celery import app
+
 DARKNET_PATH = "D:/Develop/Darknet/darknet/build/darknet/x64/"
 
 
@@ -22,20 +24,29 @@ def clamp01(v):
     return max(min(v, 1.0), 0.0)
 
 
-@shared_task
+net = None
+classes = []
+layer_names = []
+output_layers = []
+
+
+@app.task
 def judge_image(pk):
     record = DrivingImage.objects.get(pk=pk)
     image = record.image
 
     st = time.time()
 
-    net = cv2.dnn.readNet(DARKNET_PATH + "yolov3.weights", DARKNET_PATH + "yolov3.cfg")
-    classes = []
-    with open(DARKNET_PATH + "data/coco.names", "r") as f:
-        classes = [line.strip() for line in f.readlines()]
-    layer_names = net.getLayerNames()
-    output_layers = [layer_names[i[0] - 1] for i in net.getUnconnectedOutLayers()]
-    colors = np.random.uniform(0, 255, size=(len(classes), 3))
+    global net, classes, layer_names, output_layers
+    if net is None:
+        print("INIT NET!!!")
+        net = cv2.dnn.readNet(DARKNET_PATH + "yolov3-tiny.weights", DARKNET_PATH + "yolov3-tiny.cfg")
+        classes = []
+        with open(DARKNET_PATH + "data/coco.names", "r") as f:
+            classes = [line.strip() for line in f.readlines()]
+        layer_names = net.getLayerNames()
+        output_layers = [layer_names[i[0] - 1] for i in net.getUnconnectedOutLayers()]
+        # colors = np.random.uniform(0, 255, size=(len(classes), 3))
 
     cv_img = cv2.imdecode(np.fromstring(image.read(), np.uint8), cv2.IMREAD_UNCHANGED)
     height, width, _ = cv_img.shape
@@ -90,22 +101,18 @@ def judge_image(pk):
     if len(indexes) == 0:
         print("No Person Found")
 
-        score = SafetyScore(drive=record.drive, score=10)
-        score.save()
+        people_safety_score = 10
+    else:
+        print(str(indexes.size) + " Person(s) Found!")
+        print("Speed = " + str(record.speed))
 
-        return
-
-    print(str(indexes.size) + " Person(s) Found!")
-    print("Speed = " + str(record.speed))
-
-    safety_rate = clamp01(inv_lerp(target_speed + 5, target_speed, record.speed))
+        people_safety_score = int(clamp01(inv_lerp(target_speed + 5, target_speed, record.speed)) * 10)
 
     print("Maximum Speed: " + str(target_speed))
-    print("Score: " + str(safety_rate))
+    print("Score: " + str(people_safety_score))
     print("Execution Time: " + str(time.time() - st) + "s.")
 
-    # TODO: Refactoring
-    score = SafetyScore(drive=record.drive, score=int(safety_rate * 10), reason=0)
+    score = SafetyScore(drive=record.drive, score=people_safety_score, reason=0)
     score.save()
 
     """
